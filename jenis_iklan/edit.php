@@ -35,8 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($hasil_cek->num_rows > 0) {
             $_SESSION['error'] = "Nama jenis iklan sudah ada.";
         } else {
-            $perintah_ubah = $conn->prepare("UPDATE jenis_iklan SET nama_jenis=?, kategori=?, harga_per_hari=?, deskripsi=?, status_aktif=? WHERE id=?");
-            $perintah_ubah->bind_param("ssissi", $nama, $kategori, $harga, $deskripsi, $status, $id_iklan);
+            $perintah_ubah = $conn->prepare("UPDATE jenis_iklan SET nama_jenis=?, kategori=?, deskripsi=?, status_aktif=? WHERE id=?");
+            $perintah_ubah->bind_param("ssssi", $nama, $kategori, $deskripsi, $status, $id_iklan);
 
             if ($perintah_ubah->execute()) {
                 $_SESSION['success'] = "Jenis iklan berhasil diperbarui.";

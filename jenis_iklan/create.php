@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($hasil_cek->num_rows > 0) {
             $_SESSION['error'] = "Nama jenis iklan sudah ada.";
         } else {
-            $perintah_simpan = $conn->prepare("INSERT INTO jenis_iklan (nama_jenis, kategori, deskripsi, status_aktif) VALUES (?, ?, ?, ?, ?)");
-            $perintah_simpan->bind_param("ssiss", $nama, $kategori, $deskripsi, $status);
+            $perintah_simpan = $conn->prepare("INSERT INTO jenis_iklan (nama_jenis, kategori, deskripsi, status_aktif) VALUES (?, ?, ?, ?)");
+            $perintah_simpan->bind_param("ssss", $nama, $kategori, $deskripsi, $status);
 
             if ($perintah_simpan->execute()) {
                 $_SESSION['success'] = "Jenis iklan berhasil ditambahkan.";
