@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $total_hari = (int) $_POST['total_hari'];
     $total_harga = str_replace(['Rp', '.', ',', ' '], '', $_POST['total_harga']);
 
-    // --- Validasi data satu per satu ---
+    // Validasi data satu per satu 
     if (empty($nama_pic)) {
         $_SESSION['error'] = "Nama PIC wajib diisi.";
     } elseif (strlen($nama_pic) < 3) {
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['error'] = "Lokasi sudah digunakan pada tanggal tersebut. Silakan pilih tanggal atau lokasi lain.";
         } else {
 
-            // --- Proses upload file media iklan ---
+            // Proses upload file media iklan 
             $upload_berhasil = true;
             $nama_file_media = null;
 
