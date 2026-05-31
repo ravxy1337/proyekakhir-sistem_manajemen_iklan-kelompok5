@@ -1,9 +1,10 @@
 <?php
-$host = '127.0.0.1';
+// $host = '127.0.0.1';
+$host = 'localhost';
 
-if (stripos(php_uname('r'), 'microsoft') !== false) {
-    $host = gethostname() . '.mshome.net';
-}
+// if (stripos(php_uname('r'), 'microsoft') !== false) {
+//     $host = gethostname() . '.mshome.net';
+// }
 
 $user = 'root';
 $pass = '';
@@ -16,4 +17,6 @@ if ($conn->connect_error) {
 }
 
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || !empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? 'https' : 'http';
-define('BASE_URL', $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost'));
+// define('BASE_URL', $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost'));
+define('BASE_URL', $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost').'/iklanku');
+?>

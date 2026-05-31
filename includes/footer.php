@@ -11,5 +11,6 @@
             overlay.classList.toggle('active');
         }
     </script>
+    <script src="/iklanku/assets/js/pop_up.js"></script>
 </body>
 </html>

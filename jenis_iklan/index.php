@@ -121,23 +121,75 @@ $data_iklan = $perintah_data->get_result();
     <?php endif; ?>
 </div>
 
-<script>
-    function confirmDelete(id) {
-        var yakin = confirm("Apakah Anda yakin ingin menghapus data ini?");
-        if (yakin == true) {
-            window.location.href = 'delete.php?id=' + id;
-        }
-    }
+<div id="popupDelete" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+    <div class="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center">
+        <div class="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="trash-2" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Konfirmasi Hapus</h3>
+        <p class="text-sm text-gray-500 mb-6">Apakah Anda yakin ingin menghapus data jenis iklan ini secara permanen?</p>
+        <div class="flex gap-3 justify-center">
+            <button type="button" onclick="tutupPopupDelete()" 
+                class="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
+                Batal
+            </button>
+            <a id="linkHapusNyata" href="#" 
+                class="w-full px-4 py-2 bg-red-600 text-white text-center rounded-lg text-sm font-medium hover:bg-red-700">
+                Ya, Hapus
+            </a>
+        </div>
+    </div>
+</div>
 
-    <?php if (isset($_SESSION['success'])): ?>
-        alert('<?= $_SESSION['success'] ?>');
-        <?php unset($_SESSION['success']); ?>
-    <?php endif; ?>
+<?php if (isset($_SESSION['error'])): ?>
+<div id="popupGagalHapus" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+    <div class="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center animate-fade-in">
+        <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+        
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Gagal Menghapus</h3>
+        <p class="text-sm text-gray-500 mb-6"><?= $_SESSION['error']; ?></p>
+        
+        <div class="flex justify-center">
+            <button type="button" onclick="tutupPopupGagal()" 
+                class="w-full px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg text-sm font-medium transition-colors">
+                Mengerti
+            </button>
+        </div>
+    </div>
+</div>
+<?php 
+    // Hapus session error agar pop-up tidak muncul lagi saat halaman di-refresh manual
+    unset($_SESSION['error']); 
+endif; 
+?>
 
-    <?php if (isset($_SESSION['error'])): ?>
-        alert('<?= $_SESSION['error'] ?>');
-        <?php unset($_SESSION['error']); ?>
-    <?php endif; ?>
-</script>
+<?php if (isset($_SESSION['success'])): ?>
+<div id="popupSukses" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+    <div class="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center animate-fade-in">
+        
+        <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="check-circle" class="w-6 h-6"></i>
+        </div>
+        
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Aksi Berhasil</h3>
+        
+        <p class="text-sm text-gray-500 mb-6"><?= $_SESSION['success']; ?></p>
+        
+        <div class="flex justify-center">
+            <button type="button" onclick="tutupPopupSukses()" 
+                class="w-full px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg text-sm font-medium transition-colors">
+                Oke
+            </button>
+        </div>
+    </div>
+</div>
 
+<?php 
+    unset($_SESSION['success']); 
+endif; 
+?>
 <?php require_once '../includes/footer.php'; ?>

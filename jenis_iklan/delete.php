@@ -24,3 +24,4 @@ if ($hasil_cek->num_rows > 0) {
 
 header("Location: index.php");
 exit;
+?>
