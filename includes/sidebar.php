@@ -63,11 +63,9 @@ if (!isset($menu_aktif)) {
                     </p>
                 </div>
             </a>
-            <a href="<?= BASE_URL ?>/logout.php"
-                onclick="return confirm('Apakah Anda yakin ingin keluar dari aplikasi?');"
-                class="text-gray-400 hover:text-white" title="Logout">
+            <button type="button" onclick="bukaPopupLogout()" class="text-gray-400 hover:text-red-400 transition-colors" title="Logout">
                 <i data-lucide="log-out" class="w-5 h-5"></i>
-            </a>
+            </button>
         </div>
     </div>
 </aside>
@@ -92,3 +90,23 @@ if (!isset($menu_aktif)) {
         </div>
     </header>
     <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 md:p-8">
+
+<div id="popupKonfirmasiLogout" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+    <div class="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center animate-fade-in">
+        <div class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="log-out" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Konfirmasi Keluar</h3>
+        <p class="text-sm text-gray-500 mb-6">Apakah Anda yakin ingin keluar dari sistem aplikasi **iklanku**?</p>
+        <div class="flex gap-3 justify-center">
+            <button type="button" onclick="tutupPopupLogout()" 
+                class="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
+                Batal
+            </button>
+            <a href="<?= BASE_URL ?>/logout.php" 
+                class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-center rounded-lg text-sm font-medium transition-colors">
+                Ya, Keluar
+            </a>
+        </div>
+    </div>
+</div>

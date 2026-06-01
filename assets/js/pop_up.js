@@ -50,3 +50,30 @@ function tutupPopupSukses(idPopup) {
 function showPhoto(url) {
     window.open(url, '_blank');
 }
+
+// penyewaan
+function batalPesanan(id) {
+    const linkBatal = document.getElementById('linkAksiBatal');
+    const modal = document.getElementById('popupBatalPenyewaan');
+    if (linkBatal) {
+        linkBatal.href = 'batal.php?id=' + id;
+    }
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+// logout
+function bukaPopupLogout() {
+    const modal = document.getElementById('popupKonfirmasiLogout');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function tutupPopupLogout() {
+    const modal = document.getElementById('popupKonfirmasiLogout');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}

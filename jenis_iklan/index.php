@@ -148,7 +148,7 @@ $data_iklan = $perintah_data->get_result();
             <i data-lucide="alert-triangle" class="w-6 h-6"></i>
         </div>
         
-        <h3 class="text-lg font-bold text-gray-900 mb-2">Gagal Menghapus</h3>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Gagal</h3>
         <p class="text-sm text-gray-500 mb-6"><?= $_SESSION['error']; ?></p>
         
         <div class="flex justify-center">
