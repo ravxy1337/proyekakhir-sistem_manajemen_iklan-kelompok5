@@ -8,28 +8,28 @@ $filter_status = $_GET['status'] ?? '';
 $filter_tgl = $_GET['tgl'] ?? '';
 $search = $_GET['search'] ?? '';
 
-$q_data = "SELECT p.*, l.nama_lokasi, l.kode_lokasi, j.nama_jenis 
-           FROM penyewaan p 
-           JOIN lokasi l ON p.id_lokasi = l.id 
-           JOIN jenis_iklan j ON p.id_jenis = j.id 
+$q_data = "SELECT p.*, l.nama_lokasi, l.kode_lokasi, j.nama_jenis
+           FROM penyewaan p
+           JOIN lokasi l ON p.id_lokasi = l.id
+           JOIN jenis_iklan j ON p.id_jenis = j.id
            WHERE 1=1 ";
 
 if ($filter_lokasi != '') {
-    $lokasi_aman = $conn->real_escape_string($filter_lokasi);
-    $q_data .= "AND p.id_lokasi = '$lokasi_aman' ";
+    $filter_lokasi = $conn->real_escape_string($filter_lokasi);
+    $q_data .= "AND p.id_lokasi = '$filter_lokasi' ";
 }
 if ($filter_status != '') {
-    $status_aman = $conn->real_escape_string($filter_status);
-    $q_data .= "AND p.status_penyewaan = '$status_aman' ";
+    $filter_status = $conn->real_escape_string($filter_status);
+    $q_data .= "AND p.status_penyewaan = '$filter_status' ";
 }
 if ($filter_tgl != '') {
-    $tgl_aman = $conn->real_escape_string($filter_tgl);
-    $q_data .= "AND p.tgl_mulai <= '$tgl_aman' AND p.tgl_selesai >= '$tgl_aman' ";
+    $filter_tgl = $conn->real_escape_string($filter_tgl);
+    $q_data .= "AND p.tgl_mulai <= '$filter_tgl' AND p.tgl_selesai >= '$filter_tgl' ";
 }
 
 if ($search != '') {
-    $search_aman = $conn->real_escape_string($search);
-    $q_data .= "AND (p.nama_pt LIKE '%$search_aman%' OR p.nama_pic LIKE '%$search_aman%') ";
+    $search = $conn->real_escape_string($search);
+    $q_data .= "AND (p.nama_pt LIKE '%$search%' OR p.nama_pic LIKE '%$search%') ";
 }
 
 $q_data .= "ORDER BY p.tgl_mulai ASC";
