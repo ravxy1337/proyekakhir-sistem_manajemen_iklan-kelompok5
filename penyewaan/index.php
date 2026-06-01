@@ -36,9 +36,7 @@ $query_data = "SELECT p.*, l.nama_lokasi, j.nama_jenis, pb.status_pembayaran
                $kondisi_where ORDER BY p.id DESC LIMIT ? OFFSET ?";
 $stmt_data = $conn->prepare($query_data);
 if ($kata_cari) {
-    $tipe_dengan_limit = $tipe_parameter . "ii";
-    $parameter_dengan_limit = array_merge($parameter, [$jumlah_per_halaman, $mulai_dari]);
-    $stmt_data->bind_param($tipe_dengan_limit, $parameter_dengan_limit);
+    $stmt_data->bind_param("ssssii", $kata_cari_persen, $kata_cari_persen, $kata_cari_persen, $kata_cari_persen, $jumlah_per_halaman, $mulai_dari);
 } else {
     $stmt_data->bind_param("ii", $jumlah_per_halaman, $mulai_dari);
 }

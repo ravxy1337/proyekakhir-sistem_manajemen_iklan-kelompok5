@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $tgl_mulai = $_POST['tgl_mulai'];
     $tgl_selesai = $_POST['tgl_selesai'];
     $total_hari = (int) $_POST['total_hari'];
-    $total_harga = str_replace(['Rp', '.', ',', ' '], '', $_POST['total_harga']);
+    $total_harga = (float) $_POST['total_harga'];
 
     // Validasi data satu per satu 
     if (empty($nama_pic)) {
@@ -238,8 +238,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Total Harga (Rp)</label>
-                    <input type="text" name="total_harga" id="total_harga" readonly
+                    <input type="text" id="total_harga_tampil" readonly
                         class="w-full px-4 py-2 border border-gray-200 bg-blue-50 text-blue-800 rounded-lg font-bold">
+                    <!-- Nilai numerik murni yang dikirim ke server -->
+                    <input type="hidden" name="total_harga" id="total_harga">
                 </div>
             </div>
         </div>
@@ -318,13 +320,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 var opsiTerpilih = pilihanLokasi.options[pilihanLokasi.selectedIndex];
                 var hargaPerHari = opsiTerpilih.dataset.harga;
                 var totalHarga = jumlahHari * hargaPerHari;
-                inputTotalHarga.value = totalHarga.toLocaleString('id-ID');
+                // Simpan nilai mentah ke hidden input (dikirim ke PHP)
+                document.getElementById('total_harga').value = totalHarga;
+                // Tampilkan format rupiah untuk UI
+                document.getElementById('total_harga_tampil').value = 'Rp ' + parseInt(totalHarga).toLocaleString('id-ID');
             } else {
-                inputTotalHarga.value = '';
+                document.getElementById('total_harga').value = '';
+                document.getElementById('total_harga_tampil').value = '';
             }
         } else {
             inputTotalHari.value = '';
-            inputTotalHarga.value = '';
+            document.getElementById('total_harga').value = '';
+            document.getElementById('total_harga_tampil').value = '';
         }
     }
 </script>
