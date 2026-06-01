@@ -4,12 +4,9 @@ require_once '../config/auth.php';
 
 $id_penyewaan = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
-$query_cek = $conn->prepare("
-    SELECT p.status_penyewaan, pb.status_pembayaran 
-    FROM penyewaan p 
-    LEFT JOIN pembayaran pb ON p.id = pb.id_penyewaan 
-    WHERE p.id = ?
-");
+$query_cek = $conn->prepare("SELECT p.status_penyewaan, pb.status_pembayaran 
+    FROM penyewaan p LEFT JOIN pembayaran pb ON p.id = pb.id_penyewaan 
+    WHERE p.id = ?");
 $query_cek->bind_param("i", $id_penyewaan);
 $query_cek->execute();
 $data_penyewaan = $query_cek->get_result()->fetch_assoc();

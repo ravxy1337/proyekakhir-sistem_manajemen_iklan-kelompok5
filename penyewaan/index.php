@@ -8,38 +8,46 @@ $halaman_sekarang = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $jumlah_per_halaman = 10;
 $mulai_dari = ($halaman_sekarang - 1) * $jumlah_per_halaman;
 
-$kondisi_where = "";
-$parameter = [];
-$tipe_parameter = "";
-
 if ($kata_cari) {
-    $kondisi_where = "WHERE p.no_invoice LIKE ? OR p.nama_pt LIKE ? OR p.nama_pic LIKE ? OR l.nama_lokasi LIKE ?";
-    $kata_cari_persen = "%$kata_cari%";
-    $parameter = [$kata_cari_persen, $kata_cari_persen, $kata_cari_persen, $kata_cari_persen];
-    $tipe_parameter = "ssss";
+    $cari_persen = "%" . $kata_cari . "%";
+    $query_hitung = "SELECT COUNT(p.id) as total 
+                     FROM penyewaan p 
+                     JOIN lokasi l ON p.id_lokasi = l.id 
+                     WHERE p.no_invoice LIKE ? OR p.nama_pt LIKE ? OR p.nama_pic LIKE ? OR l.nama_lokasi LIKE ?";
+    $stmt_hitung = $conn->prepare($query_hitung);
+    $stmt_hitung->bind_param("ssss", $cari_persen, $cari_persen, $cari_persen, $cari_persen);
+} else {
+    $query_hitung = "SELECT COUNT(p.id) as total FROM penyewaan p";
+    $stmt_hitung = $conn->prepare($query_hitung);
 }
 
-$query_hitung = "SELECT COUNT(p.id) as total FROM penyewaan p JOIN lokasi l ON p.id_lokasi = l.id $kondisi_where";
-$stmt_hitung = $conn->prepare($query_hitung);
-if ($kata_cari) {
-    $stmt_hitung->bind_param($tipe_parameter, ...$parameter);
-}
 $stmt_hitung->execute();
 $total_data = $stmt_hitung->get_result()->fetch_assoc()['total'];
 $total_halaman = ceil($total_data / $jumlah_per_halaman);
 
-$query_data = "SELECT p.*, l.nama_lokasi, j.nama_jenis, pb.status_pembayaran 
-               FROM penyewaan p 
-               JOIN lokasi l ON p.id_lokasi = l.id 
-               JOIN jenis_iklan j ON p.id_jenis = j.id 
-               LEFT JOIN pembayaran pb ON p.id = pb.id_penyewaan
-               $kondisi_where ORDER BY p.id DESC LIMIT ? OFFSET ?";
-$stmt_data = $conn->prepare($query_data);
 if ($kata_cari) {
-    $stmt_data->bind_param("ssssii", $kata_cari_persen, $kata_cari_persen, $kata_cari_persen, $kata_cari_persen, $jumlah_per_halaman, $mulai_dari);
+    $query_data = "SELECT p.*, l.nama_lokasi, j.nama_jenis, pb.status_pembayaran 
+                   FROM penyewaan p 
+                   JOIN lokasi l ON p.id_lokasi = l.id 
+                   JOIN jenis_iklan j ON p.id_jenis = j.id 
+                   LEFT JOIN pembayaran pb ON p.id = pb.id_penyewaan
+                   WHERE p.no_invoice LIKE ? OR p.nama_pt LIKE ? OR p.nama_pic LIKE ? OR l.nama_lokasi LIKE ?
+                   ORDER BY p.id DESC LIMIT ? OFFSET ?";
+    
+    $stmt_data = $conn->prepare($query_data);
+    $stmt_data->bind_param("ssssii", $cari_persen, $cari_persen, $cari_persen, $cari_persen, $jumlah_per_halaman, $mulai_dari);
 } else {
+    $query_data = "SELECT p.*, l.nama_lokasi, j.nama_jenis, pb.status_pembayaran 
+                   FROM penyewaan p 
+                   JOIN lokasi l ON p.id_lokasi = l.id 
+                   JOIN jenis_iklan j ON p.id_jenis = j.id 
+                   LEFT JOIN pembayaran pb ON p.id = pb.id_penyewaan
+                   ORDER BY p.id DESC LIMIT ? OFFSET ?";
+    
+    $stmt_data = $conn->prepare($query_data);
     $stmt_data->bind_param("ii", $jumlah_per_halaman, $mulai_dari);
 }
+
 $stmt_data->execute();
 $hasil_data = $stmt_data->get_result();
 ?>
