@@ -84,7 +84,7 @@ while ($baris_data = $hasil_ambil->fetch_assoc()) {
             <h3 class="text-xl font-bold text-gray-800">Rp <?= number_format($total_dibayar, 0, ',', '.') ?></h3>
         </div>
         <div class="p-4 rounded-lg bg-red-50 border border-red-100">
-            <p class="text-xs font-bold text-red-600 uppercase mb-1">Total Piutang</p>
+            <p class="text-xs font-bold text-red-600 uppercase mb-1">Total Belum Bayar</p>
             <h3 class="text-xl font-bold text-gray-800">Rp <?= number_format($total_piutang, 0, ',', '.') ?></h3>
         </div>
     </div>
