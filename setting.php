@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <!-- update profil -->
     <div class="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Informasi Profil</h3>
-        <form method="POST" action="">
+        <form id="formUpdateProfil" method="POST" action="">
             <input type="hidden" name="aksi" value="update_profil">
             <div class="mb-4">
                 <label for="nama" class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                 <p class="text-xs text-gray-500 mt-1">Hanya email @gmail.com yang diizinkan.</p>
             </div>
-            <button type="submit"
+            <button type="button" onclick="bukaPopup('popupKonfirmasiUpdate')"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium">
                 Simpan Profil
             </button>
@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <!-- ubah pass -->
     <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Ubah Password</h3>
-        <form method="POST" action="">
+        <form id="formUbahPassword" method="POST" action="">
             <input type="hidden" name="aksi" value="update_password">
             <div class="mb-4">
                 <label for="password_lama" class="block text-sm font-medium text-gray-700 mb-1">Password Lama</label>
@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <input type="password" id="konfirmasi_password" name="konfirmasi_password" required minlength="6"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
             </div>
-            <button type="submit"
+            <button type="button" onclick="bukaPopup('popupKonfirmasiPassword')"
                 class="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2 rounded-lg text-sm font-medium">
                 Ubah Password
             </button>
@@ -166,5 +166,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 </div>
 
+<div id="popupKonfirmasiUpdate" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center animate-fade-in">
+        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="help-circle" class="w-8 h-8"></i>
+        </div>
+        
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Konfirmasi Simpan</h3>
+        <p class="text-sm text-gray-500 mb-6">Apakah Anda yakin data lokasi yang diinputkan sudah sesuai?</p>
+        
+        <div class="flex gap-3 justify-center">
+            <button type="button" onclick="tutupPopup('popupKonfirmasiUpdate')" 
+                class="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
+                Batal
+            </button>
+            <button type="button" onclick="submitFormNyata('formUpdateProfil')" 
+                class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+                Ya, Simpan
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="popupKonfirmasiPassword" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center">
+        <div class="w-12 h-12 rounded-full bg-yellow-50 text-yellow-600 flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="lock" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Konfirmasi Ganti Password</h3>
+        <p class="text-sm text-gray-500 mb-6">Tindakan ini akan merubah kunci keamanan akun Anda. Yakin ingin melanjutkan?</p>
+        <div class="flex gap-3 justify-center">
+            <button type="button" onclick="tutupPopup('popupKonfirmasiPassword')" 
+                class="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
+                Batal
+            </button>
+            <button type="button" onclick="submitFormNyata('formUbahPassword')" 
+                class="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium">
+                Ya, Ubah
+            </button>
+        </div>
+    </div>
+</div>
 <?php require_once 'includes/footer.php'; ?>
 
