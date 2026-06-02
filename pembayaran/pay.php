@@ -35,6 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $detail['status_pembayaran'] != 'Lun
         $_SESSION['error'] = "Nominal pembayaran tidak valid.";
     } elseif ($nominal > $detail['sisa_tagihan']) {
         $_SESSION['error'] = "Nominal pembayaran melebihi sisa tagihan.";
+    } elseif ($detail['status_penyewaan'] == 'Pending' && $nominal < ($detail['total_tagihan'] * 0.5)) {
+        $_SESSION['error'] = "Pembayaran awal (DP) minimal 50% dari total tagihan.";
     } elseif (!in_array($metode, $valid_methods)) {
         $_SESSION['error'] = "Metode pembayaran tidak valid.";
     } else {
@@ -150,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $detail['status_pembayaran'] != 'Lun
             <?php if ($detail['status_pembayaran'] != 'Lunas' && $detail['status_penyewaan'] != 'Dibatalkan'): ?>
                 <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
                     <h3 class="text-sm font-bold text-gray-800 uppercase mb-4 pb-2 border-b">Input Pembayaran</h3>
-                    <form action="" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <form action="" method="POST" enctype="multipart/form-data" class="space-y-4" id="formBayar" onsubmit="return validasiPembayaran()">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nominal (Rp) <span
                                     class="text-red-500">*</span></label>
@@ -234,9 +236,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $detail['status_pembayaran'] != 'Lun
 </div>
 
 <script>
-    function setNominal(val) {
-        document.getElementById('nominal').value = Math.floor(val);
-    }
+    const statusSewa = "<?= $detail['status_penyewaan'] ?>";
+    const totalTagihan = <?= $detail['total_tagihan'] ?>;
 </script>
+<script src="/iklanku/assets/js/pembayaran.js"></script>
 
 <?php require_once '../includes/footer.php'; ?>

@@ -19,7 +19,7 @@ $ambil_selesai = $conn->query("SELECT COUNT(id) as total FROM penyewaan WHERE st
 $data_selesai = $ambil_selesai->fetch_assoc();
 $total_selesai = $data_selesai['total'];
 
-$ambil_pending = $conn->query("SELECT COUNT(id) as total FROM pembayaran WHERE status_pembayaran != 'Lunas'");
+$ambil_pending = $conn->query("SELECT COUNT(pb.id) as total FROM pembayaran pb JOIN penyewaan p ON pb.id_penyewaan = p.id WHERE pb.status_pembayaran != 'Lunas' AND p.status_penyewaan != 'Dibatalkan'");
 $data_pending = $ambil_pending->fetch_assoc();
 $total_pending = $data_pending['total'];
 

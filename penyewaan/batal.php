@@ -5,7 +5,7 @@ require_once '../config/auth.php';
 $id_penyewaan = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 $query_cek = $conn->prepare("
-    SELECT p.status_penyewaan, pb.status_pembayaran 
+    SELECT p.status_penyewaan, pb.status_pembayaran, pb.dibayar 
     FROM penyewaan p 
     LEFT JOIN pembayaran pb ON p.id = pb.id_penyewaan 
     WHERE p.id = ?
@@ -31,7 +31,12 @@ $query_batal->bind_param("i", $id_penyewaan);
 $query_batal->execute();
 
 if ($query_batal->affected_rows > 0) {
-    $_SESSION['success'] = "Pesanan berhasil dibatalkan.";
+    $pesan = "Pesanan berhasil dibatalkan.";
+    if ($data_penyewaan['dibayar'] > 0) {
+        $refund = $data_penyewaan['dibayar'] * 0.4;
+        $pesan .= " Pengembalian dana ke pelanggan: Rp " . number_format($refund, 0, ',', '.') . " (40% dari DP).";
+    }
+    $_SESSION['success'] = $pesan;
 } else {
     $_SESSION['error'] = "Gagal membatalkan pesanan. Status mungkin bukan Pending atau Aktif.";
 }
