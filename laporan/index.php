@@ -169,7 +169,18 @@ while ($baris_data = $hasil_ambil->fetch_assoc()) {
     }
 
     function eksporKePDF() {
-        window.print();
+        var elemen = document.getElementById("wadahLaporan");
+        var kop = document.getElementById("kopLaporan");
+
+        var opsi = {
+            margin: 10,
+            filename: "Laporan_Penyewaan_<?= $tanggal_awal ?>_<?= $tanggal_akhir ?>.pdf",
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
+        };
+
+        html2pdf().set(opsi).from(elemen).save();
     }
 </script>
 
