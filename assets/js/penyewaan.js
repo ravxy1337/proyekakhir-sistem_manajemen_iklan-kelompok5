@@ -12,25 +12,25 @@ function filterLokasi() {
 
     if (idJenis) {
         selLokasi.disabled = false;
-        
-        // Memfilter 'lokasiData' yang ada di memori global browser
-        const filtered = lokasiData.filter(l => l.id_jenis == idJenis);
-        
+
+        // Memfilter 'semuaLokasi' yang ada di memori global browser
+        const filtered = semuaLokasi.filter(l => l.id_jenis == idJenis);
+
         filtered.forEach(l => {
             const opt = document.createElement('option');
             opt.value = l.id;
             opt.dataset.harga = l.harga_per_hari;
             opt.textContent = l.kode_lokasi + ' - ' + l.nama_lokasi + ' (Rp ' + parseInt(l.harga_per_hari).toLocaleString('id-ID') + '/hari)';
-            selLokasi.appendChild(opt); 
+            selLokasi.appendChild(opt);
         });
     } else {
         selLokasi.disabled = true;
     }
-    calculatePrice();
+    hitungHarga();
 }
 
 //  3. FUNGSI HITUNG DURASI & TOTAL HARGA OTOMATIS 
-function calculatePrice() {
+function hitungHarga() {
     if (!tglMulai.value || !tglSelesai.value) {
         txtTotalHari.value = '';
         txtTotalHarga.value = '';
