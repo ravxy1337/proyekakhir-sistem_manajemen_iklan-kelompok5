@@ -3,39 +3,42 @@ require_once 'includes/header.php';
 $menu_aktif = 'dashboard';
 require_once 'includes/sidebar.php';
 
-$ambil_order = $conn->query("SELECT COUNT(id) as total FROM penyewaan");
-$data_order = $ambil_order->fetch_assoc();
-$total_order = $data_order['total'];
+// Mengambil data statistik 
+$total_order = $conn->query("SELECT COUNT(id) as total FROM penyewaan")->fetch_assoc()['total'];
+$total_omset = $conn->query("SELECT SUM(total_harga) as total FROM penyewaan")->fetch_assoc()['total'] ?? 0;
+$total_aktif = $conn->query("SELECT COUNT(id) as total FROM penyewaan WHERE status_penyewaan = 'Aktif'")->fetch_assoc()['total'];
+$total_selesai = $conn->query("SELECT COUNT(id) as total FROM penyewaan WHERE status_penyewaan = 'Selesai'")->fetch_assoc()['total'];
+$total_pending = $conn->query("SELECT COUNT(pb.id) as total FROM pembayaran pb JOIN penyewaan p ON pb.id_penyewaan = p.id WHERE pb.status_pembayaran != 'Lunas' AND p.status_penyewaan != 'Dibatalkan'")->fetch_assoc()['total'];
+$total_lokasi = $conn->query("SELECT COUNT(id) as total FROM lokasi WHERE status_lokasi = 'tersedia'")->fetch_assoc()['total'];
 
-$ambil_omset = $conn->query("SELECT SUM(total_harga) as total FROM penyewaan");
-$data_omset_raw = $ambil_omset->fetch_assoc();
-$total_omset = $data_omset_raw['total'] ?? 0;
+// Logika Grafik Batang
+$tahun = date('Y');
+$labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+$data_omset = array_fill(0, 12, 0);
 
-$ambil_aktif = $conn->query("SELECT COUNT(id) as total FROM penyewaan WHERE status_penyewaan = 'Aktif'");
-$data_aktif = $ambil_aktif->fetch_assoc();
-$total_aktif = $data_aktif['total'];
-
-$ambil_selesai = $conn->query("SELECT COUNT(id) as total FROM penyewaan WHERE status_penyewaan = 'Selesai'");
-$data_selesai = $ambil_selesai->fetch_assoc();
-$total_selesai = $data_selesai['total'];
-
-$ambil_pending = $conn->query("SELECT COUNT(pb.id) as total FROM pembayaran pb JOIN penyewaan p ON pb.id_penyewaan = p.id WHERE pb.status_pembayaran != 'Lunas' AND p.status_penyewaan != 'Dibatalkan'");
-$data_pending = $ambil_pending->fetch_assoc();
-$total_pending = $data_pending['total'];
-
-$ambil_lokasi = $conn->query("SELECT COUNT(id) as total FROM lokasi WHERE status_lokasi = 'tersedia'");
-$data_lokasi = $ambil_lokasi->fetch_assoc();
-$total_lokasi = $data_lokasi['total'];
-
-$ambil_chart = $conn->query("SELECT DATE_FORMAT(tgl_mulai, '%Y-%m') as bulan, SUM(total_harga) as omset FROM penyewaan GROUP BY bulan ORDER BY bulan ASC LIMIT 12");
-$labels = [];
-$data_omset = [];
-while ($row = $ambil_chart->fetch_assoc()) {
-    $labels[] = date('F Y', strtotime($row['bulan'] . '-01'));
-    $data_omset[] = $row['omset'];
+// Transaksi Aktif dan Selesai 
+$query_normal = $conn->query("SELECT MONTH(tgl_mulai) as bln, SUM(total_harga) as omset FROM penyewaan WHERE YEAR(tgl_mulai) = '$tahun' AND status_penyewaan IN ('Aktif', 'Selesai') GROUP BY bln");
+while ($baris = $query_normal->fetch_assoc()) {
+    $data_omset[$baris['bln'] - 1] += $baris['omset'];
 }
 
-$ambil_aktivitas = $conn->query("SELECT p.*, l.nama_lokasi FROM penyewaan p JOIN lokasi l ON p.id_lokasi = l.id ORDER BY p.id DESC LIMIT 5");
+// trx db batal masuk 40% dari total_harga
+$query_batal = $conn->query("SELECT MONTH(p.tgl_mulai) as bln, SUM(p.total_harga * 0.4) as omset FROM penyewaan p JOIN pembayaran pb ON p.id = pb.id_penyewaan WHERE YEAR(p.tgl_mulai) = '$tahun' AND p.status_penyewaan = 'Dibatalkan' AND pb.status_pembayaran = 'DP' GROUP BY bln");
+while ($baris = $query_batal->fetch_assoc()) {
+    $data_omset[$baris['bln'] - 1] += $baris['omset'];
+}
+
+// Logika filter bulan dan page aktivitas terbaru
+$bulan = isset($_GET['bulan']) ? $_GET['bulan'] : date('Y-m');
+$halaman = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+$per_halaman = 5;
+$mulai = ($halaman - 1) * $per_halaman;
+
+$total_data = $conn->query("SELECT COUNT(id) as total FROM penyewaan WHERE DATE_FORMAT(created_at, '%Y-%m') = '$bulan'")->fetch_assoc()['total'];
+$total_halaman = ceil($total_data / $per_halaman);
+
+// Ambil data aktivitas 5 per halaman
+$aktivitas = $conn->query("SELECT p.*, l.nama_lokasi FROM penyewaan p JOIN lokasi l ON p.id_lokasi = l.id WHERE DATE_FORMAT(p.created_at, '%Y-%m') = '$bulan' ORDER BY p.id DESC LIMIT $per_halaman OFFSET $mulai");
 ?>
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -109,15 +112,24 @@ $ambil_aktivitas = $conn->query("SELECT p.*, l.nama_lokasi FROM penyewaan p JOIN
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <div class="lg:col-span-2 bg-white rounded-lg shadow border border-gray-200 p-5">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Grafik Pemasukan Bulanan</h3>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Grafik Pemasukan Bulanan (<?= $tahun ?>)</h3>
         <div class="relative w-full" style="min-height:200px;"><canvas id="omsetChart"></canvas></div>
     </div>
-    
-    <div class="bg-white rounded-lg shadow border border-gray-200 p-5">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Aktivitas Terbaru</h3>
-        <div class="space-y-3">
-            <?php if ($ambil_aktivitas->num_rows > 0): ?>
-                <?php while ($row = $ambil_aktivitas->fetch_assoc()): ?>
+
+    <div class="bg-white rounded-lg shadow border border-gray-200 p-5 flex flex-col">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Aktivitas Terbaru</h3>
+
+            <form method="GET" action="" id="formBulan">
+                <input type="month" name="bulan" value="<?= $bulan ?>"
+                    onchange="document.getElementById('formBulan').submit();"
+                    class="px-2 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-gray-50 cursor-pointer">
+            </form>
+        </div>
+
+        <div class="space-y-3 flex-1">
+            <?php if ($aktivitas->num_rows > 0): ?>
+                <?php while ($row = $aktivitas->fetch_assoc()): ?>
                     <div class="flex items-center p-3 hover:bg-gray-50 rounded-lg border border-gray-100">
                         <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
                             <i data-lucide="file-text" class="w-5 h-5"></i>
@@ -129,8 +141,10 @@ $ambil_aktivitas = $conn->query("SELECT p.*, l.nama_lokasi FROM penyewaan p JOIN
                         <div class="ml-2">
                             <?php
                             $warna = 'bg-gray-100 text-gray-800';
-                            if ($row['status_penyewaan'] == 'Aktif') $warna = 'bg-green-100 text-green-800';
-                            elseif ($row['status_penyewaan'] == 'Pending') $warna = 'bg-orange-100 text-orange-800';
+                            if ($row['status_penyewaan'] == 'Aktif')
+                                $warna = 'bg-green-100 text-green-800';
+                            elseif ($row['status_penyewaan'] == 'Pending')
+                                $warna = 'bg-orange-100 text-orange-800';
                             ?>
                             <span class="px-2 py-1 rounded text-xs font-medium <?= $warna ?>">
                                 <?= $row['status_penyewaan'] ?>
@@ -139,38 +153,59 @@ $ambil_aktivitas = $conn->query("SELECT p.*, l.nama_lokasi FROM penyewaan p JOIN
                     </div>
                 <?php endwhile; ?>
             <?php else: ?>
-                <p class="text-sm text-gray-500 text-center py-4">Belum ada aktivitas penyewaan.</p>
+                <div class="text-center py-8">
+                    <p class="text-sm text-gray-500">Belum ada aktivitas pada bulan ini.</p>
+                </div>
             <?php endif; ?>
         </div>
+
+        <?php if ($total_halaman > 1): ?>
+            <div class="flex justify-between items-center mt-4 pt-3 border-t border-gray-100">
+                <?php if ($halaman > 1): ?>
+                    <a href="?bulan=<?= $bulan ?>&page=<?= $halaman - 1 ?>"
+                        class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50 text-gray-600">← Prev</a>
+                <?php else: ?>
+                    <span class="px-3 py-1 text-sm border border-gray-200 rounded text-gray-300 pointer-events-none">←
+                        Prev</span>
+                <?php endif; ?>
+
+                <span class="text-sm text-gray-500">Hal <?= $halaman ?> / <?= $total_halaman ?></span>
+
+                <?php if ($halaman < $total_halaman): ?>
+                    <a href="?bulan=<?= $bulan ?>&page=<?= $halaman + 1 ?>"
+                        class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50 text-gray-600">Next →</a>
+                <?php else: ?>
+                    <span class="px-3 py-1 text-sm border border-gray-200 rounded text-gray-300 pointer-events-none">Next
+                        →</span>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
 <script>
-var ctx = document.getElementById('omsetChart').getContext('2d');
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: <?= json_encode($labels) ?>,
-        datasets: [{
-            label: 'Omset (Rp)',
-            data: <?= json_encode($data_omset) ?>,
-            borderColor: '#2563eb',
-            backgroundColor: 'rgba(37, 99, 235, 0.1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true },
-            x: { grid: { display: false } }
+    var ctx = document.getElementById('omsetChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: <?= json_encode($labels) ?>,
+            datasets: [{
+                label: 'Omset (Rp)',
+                data: <?= json_encode($data_omset) ?>,
+                backgroundColor: 'rgba(37, 99, 235, 0.7)',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true },
+                x: { grid: { display: false } }
+            }
         }
-    }
-});
+    });
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

@@ -96,6 +96,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $detail['status_pembayaran'] != 'Lun
 }
 ?>
 
+<!-- Popup Alert Error Validasi -->
+<div id="popupAlertError" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="p-2 bg-red-100 rounded-full">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+            </div>
+            <h3 class="font-bold text-gray-800">Perhatian</h3>
+        </div>
+        <p id="pesanAlertError" class="text-sm text-gray-600 mb-5"></p>
+        <button onclick="tutupPopupError()" class="w-full py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">OK, Mengerti</button>
+    </div>
+</div>
+
 <div class="max-w-5xl mx-auto">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
         <div>
@@ -239,6 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $detail['status_pembayaran'] != 'Lun
     const statusSewa = "<?= $detail['status_penyewaan'] ?>";
     const totalTagihan = <?= $detail['total_tagihan'] ?>;
 </script>
+<script src="/iklanku/assets/js/pop_up.js"></script>
 <script src="/iklanku/assets/js/pembayaran.js"></script>
 
 <?php require_once '../includes/footer.php'; ?>

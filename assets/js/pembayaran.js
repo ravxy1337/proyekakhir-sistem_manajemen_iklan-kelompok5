@@ -7,9 +7,9 @@ function validasiPembayaran() {
     let minimalDP = totalTagihan / 2;
 
     if (statusSewa == 'Pending' && nominal < minimalDP) {
-        alert('Maaf, untuk pesanan baru DP minimal adalah 50% dari total tagihan.');
-        return false; 
+        tampilPopupError('Pembayaran awal (DP) minimal 50% dari total tagihan.');
+        return false;
     }
-    
-    return true; 
+
+    return true;
 }

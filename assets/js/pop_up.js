@@ -77,3 +77,19 @@ function tutupPopupLogout() {
         modal.classList.add('hidden');
     }
 }
+
+// popup alert error validasi (pembayaran, dll)
+function tampilPopupError(pesan) {
+    const modal = document.getElementById('popupAlertError');
+    const teks  = document.getElementById('pesanAlertError');
+    if (modal && teks) {
+        teks.textContent = pesan;
+        modal.classList.remove('hidden');
+    }
+}
+function tutupPopupError() {
+    const modal = document.getElementById('popupAlertError');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
