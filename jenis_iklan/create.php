@@ -4,12 +4,12 @@ $menu_aktif = 'jenis_iklan';
 require_once '../includes/sidebar.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nama = $_POST['nama_jenis'];
+    $nama = trim($_POST['nama_jenis']);
     $kategori = $_POST['kategori'];
-    $deskripsi = $_POST['deskripsi'];
+    $deskripsi = trim($_POST['deskripsi']);
     $status = $_POST['status_aktif'];
 
-    if ($nama == '' || $deskripsi == '') {
+    if (empty($nama) || empty($deskripsi)) {
         $_SESSION['error'] = "Nama Jenis dan Deskripsi iklan wajib diisi.";
     } elseif(!preg_match("/^[a-zA-Z0-9\s]+$/", $nama) || !preg_match("/^[a-zA-Z0-9\s]+$/", $deskripsi)) {
         $_SESSION['error'] = "Nama Jenis dan Deskripsi iklan hanya boleh mengandung huruf, angka, dan spasi.";

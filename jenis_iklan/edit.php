@@ -26,7 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if ($nama == '') {
         $_SESSION['error'] = "Nama jenis iklan wajib diisi.";
-    } else {
+    } elseif(!preg_match("/^[a-zA-Z0-9\s]+$/", $nama) || !preg_match("/^[a-zA-Z0-9\s]+$/", $deskripsi)) {
+        $_SESSION['error'] = "Nama Jenis dan Deskripsi iklan hanya boleh mengandung huruf, angka, dan spasi."; 
+    }else {
         $perintah_cek = $conn->prepare("SELECT id FROM jenis_iklan WHERE nama_jenis = ? AND id != ?");
         $perintah_cek->bind_param("si", $nama, $id_iklan);
         $perintah_cek->execute();
