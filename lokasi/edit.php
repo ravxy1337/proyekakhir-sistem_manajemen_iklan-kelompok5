@@ -3,12 +3,18 @@ require_once '../includes/header.php';
 $menu_aktif = 'lokasi';
 require_once '../includes/sidebar.php';
 
-$id = $_GET['id'];
+$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 $ambil = $conn->prepare("SELECT * FROM lokasi WHERE id = ?");
 $ambil->bind_param("i", $id);
 $ambil->execute();
 $data = $ambil->get_result()->fetch_assoc();
+
+if (!$data) {
+    $_SESSION['error'] = "Data tidak ditemukan.";
+    echo "<script>window.location.href='index.php';</script>";
+    exit;
+}
 
 $jenis = $conn->query("SELECT id, nama_jenis FROM jenis_iklan WHERE status_aktif='aktif'");
 

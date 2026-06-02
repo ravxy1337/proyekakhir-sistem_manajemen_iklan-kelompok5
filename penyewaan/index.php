@@ -211,17 +211,17 @@ $hasil_data = $stmt_data->get_result();
 </div>
 
 <?php if (isset($_SESSION['error'])): ?>
-<div id="popupGagalLokasi" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+<div id="popupGagalSewa" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
     <div class="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center animate-fade-in">
         <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-4">
             <i data-lucide="alert-triangle" class="w-6 h-6"></i>
         </div>
         
-        <h3 class="text-lg font-bold text-gray-900 mb-2">Gagal Menghapus</h3>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Gagal</h3>
         <p class="text-sm text-gray-500 mb-6"><?= $_SESSION['error']; ?></p>
         
         <div class="flex justify-center">
-            <button type="button" onclick="tutupPopupGagal('popupGagalLokasi')" 
+            <button type="button" onclick="tutupPopupGagal('popupGagalSewa')" 
                 class="w-full px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg text-sm font-medium transition-colors">
                 Mengerti
             </button>
