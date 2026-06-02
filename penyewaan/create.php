@@ -37,10 +37,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Validasi data satu per satu 
     if (empty($nama_pic)) {
         $_SESSION['error'] = "Nama PIC wajib diisi.";
+    } elseif (!preg_match('/^[a-zA-Z\s]+$/', $nama_pic)) {
+        $_SESSION['error'] = "Nama PIC hanya boleh berisi huruf dan spasi.";
     } elseif (strlen($nama_pic) < 3) {
         $_SESSION['error'] = "Nama PIC minimal 3 karakter.";
     } elseif (empty($no_hp)) {
         $_SESSION['error'] = "Nomor HP wajib diisi.";
+    } elseif (!preg_match('/^[a-zA-Z\s]+$/', $nama_pt) && !empty($nama_pt)) {
+        $_SESSION['error'] = "Nama PT hanya boleh berisi huruf, angka, dan spasi.";
     } elseif (!preg_match('/^[0-9]{10,15}$/', $no_hp)) {
         $_SESSION['error'] = "Nomor HP harus 10-15 digit angka.";
     } elseif (empty($email)) {
