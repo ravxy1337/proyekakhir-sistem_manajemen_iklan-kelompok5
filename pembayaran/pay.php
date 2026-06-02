@@ -27,44 +27,68 @@ $ambil_riwayat->execute();
 $list_riwayat = $ambil_riwayat->get_result();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && $detail['status_pembayaran'] != 'Lunas' && $detail['status_penyewaan'] != 'Dibatalkan') {
-    $nominal = $_POST['nominal'];
+    $nominal = str_replace(['Rp', '.', ',', ' '], '', $_POST['nominal']);
     $metode = $_POST['metode'];
 
-    $pilihan_metode = ['Transfer', 'Cash', 'QRIS'];
+    $valid_methods = ['Transfer', 'Cash', 'QRIS'];
     if (empty($nominal) || !is_numeric($nominal) || $nominal <= 0) {
         $_SESSION['error'] = "Nominal pembayaran tidak valid.";
     } elseif ($nominal > $detail['sisa_tagihan']) {
         $_SESSION['error'] = "Nominal pembayaran melebihi sisa tagihan.";
-    } elseif (!in_array($metode, $pilihan_metode)) {
+    } elseif (!in_array($metode, $valid_methods)) {
         $_SESSION['error'] = "Metode pembayaran tidak valid.";
-    } elseif (!isset($_FILES['bukti_pembayaran']) || $_FILES['bukti_pembayaran']['error'] !== UPLOAD_ERR_OK) {
-        $_SESSION['error'] = "Bukti pembayaran wajib diunggah.";
     } else {
-        $ekstensi = pathinfo($_FILES['bukti_pembayaran']['name'], PATHINFO_EXTENSION);
-        $bukti = uniqid('tf_') . '.' . $ekstensi;
+        $upload_ok = true;
+        $bukti = null;
+        if (isset($_FILES['bukti_pembayaran']) && $_FILES['bukti_pembayaran']['error'] === UPLOAD_ERR_OK) {
+            $allowed_types = ['image/jpeg', 'image/png', 'image/jpg'];
+            $max_size = 5 * 1024 * 1024;
 
-        if (move_uploaded_file($_FILES['bukti_pembayaran']['tmp_name'], '../uploads/bukti/' . $bukti)) {
-            $tambah = $conn->prepare("INSERT INTO riwayat_pembayaran (id_pembayaran, nominal, metode, bukti_pembayaran) VALUES (?, ?, ?, ?)");
-            $tambah->bind_param("idss", $id_pembayaran, $nominal, $metode, $bukti);
-            $tambah->execute();
-
-            $total_dibayar = $detail['dibayar'] + $nominal;
-            $sisa_baru = $detail['total_tagihan'] - $total_dibayar;
-            $status_baru = ($sisa_baru <= 0) ? 'Lunas' : 'DP';
-
-            $update = $conn->prepare("UPDATE pembayaran SET dibayar = ?, sisa_tagihan = ?, status_pembayaran = ? WHERE id = ?");
-            $update->bind_param("ddsi", $total_dibayar, $sisa_baru, $status_baru, $id_pembayaran);
-            $update->execute();
-
-            if ($detail['status_penyewaan'] == 'Pending') {
-                $conn->query("UPDATE penyewaan SET status_penyewaan = 'Aktif' WHERE id = $id_penyewaan");
+            if (!in_array($_FILES['bukti_pembayaran']['type'], $allowed_types)) {
+                $_SESSION['error'] = "Format bukti pembayaran hanya JPG/PNG.";
+                $upload_ok = false;
+            } elseif ($_FILES['bukti_pembayaran']['size'] > $max_size) {
+                $_SESSION['error'] = "Ukuran bukti maksimal 5MB.";
+                $upload_ok = false;
+            } else {
+                $ext = pathinfo($_FILES['bukti_pembayaran']['name'], PATHINFO_EXTENSION);
+                $bukti = uniqid('tf_') . '.' . $ext;
+                move_uploaded_file($_FILES['bukti_pembayaran']['tmp_name'], '../uploads/bukti/' . $bukti);
             }
-
-            $_SESSION['success'] = "Pembayaran berhasil diproses.";
-            echo "<script>window.location.href='pay.php?id_penyewaan=$id_penyewaan';</script>";
-            exit;
         } else {
-            $_SESSION['error'] = "Gagal mengunggah bukti pembayaran.";
+            $_SESSION['error'] = "Bukti pembayaran wajib diunggah dan tidak boleh error (ukuran file mungkin terlalu besar).";
+            $upload_ok = false;
+        }
+        if ($upload_ok) {
+            $stmt_hist = $conn->prepare("INSERT INTO riwayat_pembayaran (id_pembayaran, nominal, metode, bukti_pembayaran) VALUES (?, ?, ?, ?)");
+            $stmt_hist->bind_param("idss", $id_pembayaran, $nominal, $metode, $bukti);
+            if($stmt_hist->execute()) {
+                // Update 
+                $new_dibayar = $detail['dibayar'] + $nominal;
+                $new_sisa = $detail['total_tagihan'] - $new_dibayar;
+                $new_status = ($new_sisa <= 0) ? 'Lunas' : 'DP';
+
+                $stmt_upd = $conn->prepare("UPDATE pembayaran SET dibayar = ?, sisa_tagihan = ?, status_pembayaran = ? WHERE id = ?");
+                $stmt_upd->bind_param("ddsi", $new_dibayar, $new_sisa, $new_status, $id_pembayaran);
+                if ($stmt_upd->execute()) {
+                    // ubah status sewa
+                    if ($detail['status_penyewaan'] == 'Pending') {
+                        $batas_50_persen = $detail['total_tagihan'] * 0.5;
+                        if ($new_dibayar >= $batas_50_persen) {
+                            $stmt_sewa = $conn->prepare("UPDATE penyewaan SET status_penyewaan = 'Aktif' WHERE id = ?");
+                            $stmt_sewa->bind_param("i", $id_penyewaan);
+                            $stmt_sewa->execute();
+                        }
+                    }
+                    $_SESSION['success'] = "Pembayaran berhasil diproses.";
+                    echo "<script>window.location.href='pay.php?id_penyewaan=$id_penyewaan';</script>";
+                    exit;
+            } else {
+                $_SESSION['error'] = "Gagal memperbarui data status pembayaran.";
+            }
+        } else {
+            $_SESSION['error'] = "Gagal menyimpan riwayat pembayaran.";
+            }
         }
     }
 }

@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $tgl_mulai = $_POST['tgl_mulai'];
     $tgl_selesai = $_POST['tgl_selesai'];
     $total_hari = (int) $_POST['total_hari'];
-    $total_harga = (float) $_POST['total_harga'];
+    $total_harga = str_replace(['Rp', '.', ',', ' '], '', $_POST['total_harga']);
 
     // Validasi data satu per satu 
     if (empty($nama_pic)) {
@@ -55,6 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['error'] = "Lokasi wajib dipilih.";
     } elseif (empty($tgl_mulai) || empty($tgl_selesai)) {
         $_SESSION['error'] = "Tanggal mulai dan selesai wajib diisi.";
+    } elseif ($tgl_mulai < date('Y-m-d')) {
+        $_SESSION['error'] = "Tanggal mulai tidak boleh sebelum hari ini."; 
     } elseif ($tgl_selesai < $tgl_mulai) {
         $_SESSION['error'] = "Tanggal selesai tidak boleh kurang dari tanggal mulai.";
     } elseif ($total_hari <= 0) {
@@ -95,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             if ($upload_berhasil) {
-                //  Buat nomor invoice otomatis 
+                // --- Buat nomor invoice otomatis ---
                 $tanggal_invoice = date('Ymd');
                 $query_hitung_invoice = $conn->query("SELECT COUNT(id) as jumlah FROM penyewaan WHERE DATE(created_at) = CURDATE()");
                 $jumlah_hari_ini = $query_hitung_invoice->fetch_assoc()['jumlah'] + 1;
@@ -238,10 +240,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Total Harga (Rp)</label>
-                    <input type="text" id="total_harga_tampil" readonly
+                    <input type="text" name="total_harga" id="total_harga" readonly
                         class="w-full px-4 py-2 border border-gray-200 bg-blue-50 text-blue-800 rounded-lg font-bold">
-                    <!-- Nilai numerik murni yang dikirim ke server -->
-                    <input type="hidden" name="total_harga" id="total_harga">
                 </div>
             </div>
         </div>
@@ -257,101 +257,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <script>
     // Data semua lokasi yang diambil dari PHP (dalam format JSON)
     var semuaLokasi = <?= json_encode($daftar_lokasi) ?>;
-
-    // Ambil elemen-elemen form yang akan dipakai
-    var pilihanJenis = document.getElementById('id_jenis');
-    var pilihanLokasi = document.getElementById('id_lokasi');
-    var inputTglMulai = document.getElementById('tgl_mulai');
-    var inputTglSelesai = document.getElementById('tgl_selesai');
-    var inputTotalHari = document.getElementById('total_hari');
-    var inputTotalHarga = document.getElementById('total_harga');
-
-    // Fungsi untuk menyaring lokasi berdasarkan jenis iklan yang dipilih
-    function filterLokasi() {
-        var idJenisDipilih = pilihanJenis.value;
-
-        // Reset pilihan lokasi
-        pilihanLokasi.innerHTML = '<option value="">-- Pilih Lokasi --</option>';
-
-        if (idJenisDipilih) {
-            pilihanLokasi.disabled = false;
-
-            // Tampilkan hanya lokasi yang sesuai jenis iklannya
-            var lokasiSesuai = semuaLokasi.filter(function (lokasi) {
-                return lokasi.id_jenis == idJenisDipilih;
-            });
-
-            lokasiSesuai.forEach(function (lokasi) {
-                var opsi = document.createElement('option');
-                opsi.value = lokasi.id;
-                opsi.dataset.harga = lokasi.harga_per_hari;
-                opsi.textContent = lokasi.kode_lokasi + ' - ' + lokasi.nama_lokasi + ' (Rp ' + parseInt(lokasi.harga_per_hari).toLocaleString('id-ID') + '/hari)';
-                pilihanLokasi.appendChild(opsi);
-            });
-        } else {
-            pilihanLokasi.disabled = true;
-        }
-
-        hitungHarga();
-    }
-
-    // Fungsi untuk menghitung total hari dan total harga secara otomatis
-    function hitungHarga() {
-        var tanggalMulai = new Date(inputTglMulai.value);
-        var tanggalSelesai = new Date(inputTglSelesai.value);
-
-        if (inputTglMulai.value && inputTglSelesai.value) {
-            // Cek apakah tanggal selesai lebih awal dari tanggal mulai
-            if (tanggalSelesai < tanggalMulai) {
-                alert('Tanggal selesai tidak boleh kurang dari tanggal mulai');
-                inputTglSelesai.value = '';
-                inputTotalHari.value = '';
-                inputTotalHarga.value = '';
-                return;
-            }
-
-            // Hitung selisih hari
-            var selisihWaktu = Math.abs(tanggalSelesai - tanggalMulai);
-            var jumlahHari = Math.ceil(selisihWaktu / (1000 * 60 * 60 * 24)) + 1;
-            inputTotalHari.value = jumlahHari;
-
-            // Hitung total harga kalau lokasi sudah dipilih
-            if (pilihanLokasi.value) {
-                var opsiTerpilih = pilihanLokasi.options[pilihanLokasi.selectedIndex];
-                var hargaPerHari = opsiTerpilih.dataset.harga;
-                var totalHarga = jumlahHari * hargaPerHari;
-                // Simpan nilai mentah ke hidden input (dikirim ke PHP)
-                document.getElementById('total_harga').value = totalHarga;
-                // Tampilkan format rupiah untuk UI
-                document.getElementById('total_harga_tampil').value = 'Rp ' + parseInt(totalHarga).toLocaleString('id-ID');
-            } else {
-                document.getElementById('total_harga').value = '';
-                document.getElementById('total_harga_tampil').value = '';
-            }
-        } else {
-            inputTotalHari.value = '';
-            document.getElementById('total_harga').value = '';
-            document.getElementById('total_harga_tampil').value = '';
-        }
-    }
 </script>
 
-<div id="popupKonfirmasiTambah"
-    class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+<div id="popupKonfirmasiTambah" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
     <div class="bg-white rounded-xl shadow-lg max-w-sm w-full p-6 text-center animate-fade-in">
         <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4">
             <i data-lucide="help-circle" class="w-8 h-8"></i>
         </div>
-
+        
         <h3 class="text-lg font-bold text-gray-900 mb-2">Konfirmasi Simpan</h3>
         <p class="text-sm text-gray-500 mb-6">Apakah Anda yakin data lokasi yang diinputkan sudah sesuai?</p>
-
+        
         <div class="flex gap-3 justify-center">
-            <button type="button" onclick="tutupPopup('popupKonfirmasiTambah')"
+            <button type="button" onclick="tutupPopup('popupKonfirmasiTambah')" 
                 class="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
                 Batal
             </button>
-            <button type="button" onclick="submitFormNyata('formTambahSewa')"
+            <button type="button" onclick="submitFormNyata('formTambahSewa')" 
                 class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
                 Ya, Simpan
             </button>
