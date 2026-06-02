@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $status = $_POST['status_lokasi'];
 
     if (empty($nama_lokasi) || empty($alamat) || empty($id_jenis) || empty($ukuran) || empty($status) || $harga === "") {
-        $_SESSION['error'] = "Semua field bertanda bintang (*) dan Ukuran wajib diisi";
+        $_SESSION['error'] = "Semua field bertanda bintang (*) dan Ukuran wajib diisigit";
     } 
     // Pastikan harga tidak minus
     elseif ((float)$harga < 0) {
@@ -23,6 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Validasi Anti-Simbol Nama Lokasi
     elseif (!preg_match('/^[a-zA-Z0-9 ]+$/', $nama_lokasi)) {
         $_SESSION['error'] = "Nama lokasi hanya boleh berisi huruf, angka, dan spasi (tidak boleh menggunakan simbol).";
+    } 
+    elseif (!preg_match('/^[a-zA-Z0-9 ]+$/', $alamat)) {
+        $_SESSION['error'] = "Alamat hanya boleh berisi huruf, angka, dan spasi (tidak boleh menggunakan simbol).";
     } 
     // Validasi Format Ukuran (Wajib Angka x Angka)
     elseif (!preg_match('/^[0-9]+[xX][0-9]+$/', $ukuran)) {
