@@ -6,41 +6,58 @@ require_once '../includes/sidebar.php';
 $data_jenis = $conn->query("SELECT id, nama_jenis FROM jenis_iklan WHERE status_aktif = 'aktif'");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nama_lokasi = $_POST['nama_lokasi'];
-    $alamat = $_POST['alamat'];
+    $nama_lokasi = trim($_POST['nama_lokasi']);
+    $alamat = trim($_POST['alamat']);
     $id_jenis = $_POST['id_jenis'];
-    $ukuran = $_POST['ukuran'];
-    $harga = $_POST['harga_per_hari'];
+    $ukuran = trim($_POST['ukuran']);
+    $harga = trim($_POST['harga_per_hari']);
     $status = $_POST['status_lokasi'];
 
-    $data_terakhir = $conn->query("SELECT kode_lokasi FROM lokasi ORDER BY id DESC LIMIT 1");
-
-    if ($data_terakhir->num_rows > 0) {
-        $data = $data_terakhir->fetch_assoc();
-        $nomor = str_replace('LOC-', '', $data['kode_lokasi']);
-        $nomor++;
-        $kode_otomatis = 'LOC-' . sprintf('%03d', $nomor);
-    } else {
-        $kode_otomatis = 'LOC-001';
+    if (empty($nama_lokasi) || empty($alamat) || empty($id_jenis) || empty($ukuran) || empty($status) || $harga === "") {
+        $_SESSION['error'] = "Semua field bertanda bintang (*) dan Ukuran wajib diisi";
+    } 
+    // Pastikan harga tidak minus
+    elseif ((float)$harga < 0) {
+        $_SESSION['error'] = "Harga per hari tidak boleh minus!";
     }
+    // Validasi Anti-Simbol Nama Lokasi
+    elseif (!preg_match('/^[a-zA-Z0-9 ]+$/', $nama_lokasi)) {
+        $_SESSION['error'] = "Nama lokasi hanya boleh berisi huruf, angka, dan spasi (tidak boleh menggunakan simbol).";
+    } 
+    // Validasi Format Ukuran (Wajib Angka x Angka)
+    elseif (!preg_match('/^[0-9]+[xX][0-9]+$/', $ukuran)) {
+        $_SESSION['error'] = "Format ukuran tidak valid! Harus berbentuk Angka x Angka (Contoh: 22x22).";
+    } 
+    else {
+        $data_terakhir = $conn->query("SELECT kode_lokasi FROM lokasi ORDER BY id DESC LIMIT 1");
 
-    $foto_baru = '';
-    if ($_FILES['foto_lokasi']['name'] != '') {
-        $nama_foto = $_FILES['foto_lokasi']['name'];
-        $tempat_sementara = $_FILES['foto_lokasi']['tmp_name'];
-        $foto_baru = time() . '_' . $nama_foto;
-        move_uploaded_file($tempat_sementara, '../uploads/lokasi/' . $foto_baru);
-    }
+        if ($data_terakhir->num_rows > 0) {
+            $data = $data_terakhir->fetch_assoc();
+            $nomor = str_replace('LOC-', '', $data['kode_lokasi']);
+            $nomor++;
+            $kode_otomatis = 'LOC-' . sprintf('%03d', $nomor);
+        } else {
+            $kode_otomatis = 'LOC-001';
+        }
 
-    $perintah_simpan = "INSERT INTO lokasi (kode_lokasi, nama_lokasi, alamat, id_jenis, ukuran, harga_per_hari, status_lokasi, foto_lokasi) 
-                        VALUES ('$kode_otomatis', '$nama_lokasi', '$alamat', '$id_jenis', '$ukuran', '$harga', '$status', '$foto_baru')";
+        $foto_baru = '';
+        if ($_FILES['foto_lokasi']['name'] != '') {
+            $nama_foto = $_FILES['foto_lokasi']['name'];
+            $tempat_sementara = $_FILES['foto_lokasi']['tmp_name'];
+            $foto_baru = time() . '_' . $nama_foto;
+            move_uploaded_file($tempat_sementara, '../uploads/lokasi/' . $foto_baru);
+        }
 
-    if ($conn->query($perintah_simpan)) {
-        $_SESSION['success'] = "Lokasi berhasil ditambahkan.";
-        echo "<script>window.location.href='index.php';</script>";
-        exit;
-    } else {
-        $_SESSION['error'] = "Gagal menyimpan data lokasi.";
+        $perintah_simpan = "INSERT INTO lokasi (kode_lokasi, nama_lokasi, alamat, id_jenis, ukuran, harga_per_hari, status_lokasi, foto_lokasi) 
+                            VALUES ('$kode_otomatis', '$nama_lokasi', '$alamat', '$id_jenis', '$ukuran', '$harga', '$status', '$foto_baru')";
+
+        if ($conn->query($perintah_simpan)) {
+            $_SESSION['success'] = "Lokasi berhasil ditambahkan.";
+            echo "<script>window.location.href='index.php';</script>";
+            exit;
+        } else {
+            $_SESSION['error'] = "Gagal menyimpan data lokasi.";
+        }
     }
 }
 ?>
